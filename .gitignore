@@ -1,0 +1,13 @@
+# VS 工程生成的缓存
+.vs/
+
+# 编译输出目录
+Debug/
+Release/
+x64/
+
+# 编译产物
+*.obj
+*.exe
+*.pdb
+*.log
