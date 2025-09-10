@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36301.6 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SEEK_LIGHT_V0.1", "SEEK_LIGHT_V0.1.vcxproj", "{731D0E8C-E38D-46F6-A94B-A32AA8D857A9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Develop|x64 = Develop|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{731D0E8C-E38D-46F6-A94B-A32AA8D857A9}.Debug|x64.ActiveCfg = Debug|x64
+		{731D0E8C-E38D-46F6-A94B-A32AA8D857A9}.Debug|x64.Build.0 = Debug|x64
+		{731D0E8C-E38D-46F6-A94B-A32AA8D857A9}.Develop|x64.ActiveCfg = Develop|x64
+		{731D0E8C-E38D-46F6-A94B-A32AA8D857A9}.Develop|x64.Build.0 = Develop|x64
+		{731D0E8C-E38D-46F6-A94B-A32AA8D857A9}.Release|x64.ActiveCfg = Release|x64
+		{731D0E8C-E38D-46F6-A94B-A32AA8D857A9}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03B1535A-6FFC-45D8-84FE-77F9F36F9A63}
+	EndGlobalSection
+EndGlobal

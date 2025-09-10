@@ -33,12 +33,15 @@ const int   PLAYER_W = 64;
 const int   PLAYER_H = 80;
 const float HALF_W = PLAYER_W * 0.5f;
 const float HALF_H = PLAYER_H * 0.5f;
-// 仅用于碰撞（可按需改小/改大）
+// 仅用于碰撞
 const int   PLY_COLL_W = 33;
 const int   PLY_COLL_H = 52;
 const float PLY_COLL_HALF_W = PLY_COLL_W * 0.5f;
 const float PLY_COLL_HALF_H = PLY_COLL_H * 0.5f;
 
+// 敌人碰撞盒（和玩家同规格，命中更公平）
+const int   ENEMY_COLL_W = 33;
+const int   ENEMY_COLL_H = 52;
 
 constexpr float EPS = 0.001f;
 
@@ -46,16 +49,15 @@ const char* LIGHT_TEX_PATH = "./assets/play/env/img/light_mask.png";
 const int   LIGHT_TEX_BASE = 1024;
 int         gLightTex = -1;
 
-// 灯光半径配置
-const float R_MIN = 120.0f;   // 断电时强制最小显示半径
-const float R_MAX = 600.0f;   // 不再直接使用，只保留上限常量
+// 灯光/电量
+const float R_MIN = 120.0f;
+const float R_MAX = 600.0f;
 const float FUEL_MAX = 100.0f;
 const float DRAIN_PER_FRAME = FUEL_MAX / (35.0f * 60.0f);
 const float RADIUS_LERP = 0.20f;
 
-// 三个灯光档位对应半径（按需求固定为 200/350/550）
+// 三个灯光档位对应半径
 const float LIGHT_LEVELS[3] = { 180.0f, 280.0f, 550.0f };
-// 各档耗电倍率（相对 DRAIN_PER_FRAME 基准；大档更费电）
 const float DRAIN_MULT[3] = { 0.6f, 1.0f, 1.6f };
 
 constexpr unsigned int COL_WHITE = 0xFFFFFFFFu;
@@ -67,7 +69,7 @@ constexpr unsigned int COL_MM_BG = 0x000000A0u;
 constexpr unsigned int COL_MM_P = 0x00FFFFFFu;
 constexpr unsigned int COL_ENEMY = 0xFF0000FFu;
 
-const float BATT_RESPAWN_SEC = 30.0f;
+const float BATT_RESPAWN_SEC = 90.0f;
 const float FRAME_SEC = 1.0f / 60.0f;
 const float PICK_RADIUS = 48.0f;
 const int   DOT_SZ = 20;
@@ -79,50 +81,47 @@ const int MINI_MARGIN = 12;
 const int   ENEMY_W = 64;
 const int   ENEMY_H = 80;
 const float ENEMY_SPEED = 3.0f;
-const int ENEMIES_PER_QUADRANT = 3;   // ★ 每个象限要多少只，改这个就行
+const int ENEMIES_PER_QUADRANT = 3;   // ★ 敌人数量入口
 const float BACKTRACK_CHANCE_WHEN_ALT_EXISTS = 0.0f;
-// 固定敌人视野半径不再用于“发现玩家”，保留常量但不使用
+// 固定视野半径保留但不用于“发现玩家”
 const float ENEMY_VIEW_RADIUS = 260.0f;
 const float CHASE_REPATH_SEC = 0.25f;
 const float CHASE_LOST_SECONDS = 10.0f;
 
 const float ENEMY_ANIM_FPS = 30.0f;
-const int ENEMY_FRAMES = 7;   // ★ 敌人帧数：0..6
+const int ENEMY_FRAMES = 7;
 const float ENEMY_ANIM_DT = 1.0f / ENEMY_ANIM_FPS;
 
-const int   PLAYER_FRAMES = 9;            // ★ 由4改为9
+const int   PLAYER_FRAMES = 9;
 const float PLAYER_ANIM_FPS = 20.0f;
 const float PLAYER_ANIM_DT = 1.0f / PLAYER_ANIM_FPS;
 
-// ===== 全局渲染缩放（主画面放大 4 倍）=====
+// 渲染缩放
 const float RENDER_SCALE = 1.5f;
+inline float ViewW() { return SCREEN_W / RENDER_SCALE; }
+inline float ViewH() { return SCREEN_H / RENDER_SCALE; }
 
-inline float ViewW() { return SCREEN_W / RENDER_SCALE; } // 相机在世界中的可视宽
-inline float ViewH() { return SCREEN_H / RENDER_SCALE; } // 相机在世界中的可视高
+// BGM参数
+const float DANGER_ENTER_DIST = 220.0f; // 保留
+const float DANGER_EXIT_DIST = 270.0f; // 保留
+const float DANGER_LINGER_SEC = 4.0f;
+const float ALERT_LINGER_SEC = 2.5f;
 
-// ======== 追击阶段BGM：参数可按需调整 ========
-// 距离阈值（世界坐标：像素/px）。进入危险≤ENTER，脱离危险≥EXIT（做了回滞）
-const float DANGER_ENTER_DIST = 220.0f;   // 进入二阶段（危险）
-const float DANGER_EXIT_DIST = 270.0f;   // 脱离二阶段（需要更远一点）
+const float MAIN_BGM_VOL = 0.50f;
+const float ALERT_BGM_VOL = 0.80f;
+const float DANGER_BGM_VOL = 0.85f;
 
-// 余音时长（秒）
-const float DANGER_LINGER_SEC = 4.0f;     // 二阶段撤离后仍保持的时长
-const float ALERT_LINGER_SEC = 2.5f;     // 一阶段撤离后仍保持的时长
+const float FADE_UP_PER_SEC = 1.50f;
+const float FADE_DOWN_PER_SEC = 1.30f;
 
-// 音量与淡入淡出（0.0~1.0）
-const float MAIN_BGM_VOL = 0.50f;       // 主BGM目标音量
-const float ALERT_BGM_VOL = 0.80f;       // 一阶段BGM目标音量
-const float DANGER_BGM_VOL = 0.85f;       // 二阶段BGM目标音量
+const float ALERT_MAX_DIST = 500.0f;
+const float DANGER_VOL_FAR_WHEN_CHASE = 650.0f;
+const float DANGER_VOL_MIN_WHEN_CHASE = 0.12f;
 
-const float FADE_UP_PER_SEC = 1.50f;    // 每秒音量上升幅度（线性）
-const float FADE_DOWN_PER_SEC = 1.30f;    // 每秒音量下降幅度（线性）
+const float DANGER_TAIL_IN_STAGE1 = 0.6f; // 保留
 
-const float ALERT_MAX_DIST = 500.0f;          // 一阶段的外圈距离上限（>此值=主BGM）
-const float DANGER_VOL_FAR_WHEN_CHASE = 650.0f; // 追击时二阶段随距离衰减到0的“远界”
-const float DANGER_VOL_MIN_WHEN_CHASE = 0.12f;  // 追击时二阶段音量的最小底线
-
-const float DANGER_TAIL_IN_STAGE1 = 0.6f; // 0~1，阶段2退到L2~L3区间时的余音比例
-
+const int  MAX_BATT_ACTIVE = 6;   // 同时最多在地图上存在的电池数
+const bool BATT_ENABLE_RESPAWN = true; // 关掉=不再刷新
 
 #pragma endregion
 
@@ -471,24 +470,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     int mapTex = Novice::LoadTexture("./assets/play/env/img/map.png");
     gLightTex = Novice::LoadTexture(LIGHT_TEX_PATH);
 
-    // 小工具：双路径回退加载（assets 优先，失败再试 asetts）
+    // 双路径回退加载音频
     auto LoadAudioTry = [](const char* pAssets, const char* pAsetts)->int {
         int id = Novice::LoadAudio(pAssets);
         if (id >= 0) return id;
         return Novice::LoadAudio(pAsetts);
         };
 
-    // 小工具：安全设置音量（voice句柄>=0才设置）
+    // 安全设置音量
     auto SetVoiceVol = [](int voice, float vol) {
         if (voice >= 0) {
-            // 钳制到[0,1]
             if (vol < 0.0f) vol = 0.0f;
             if (vol > 1.0f) vol = 1.0f;
             Novice::SetAudioVolume(voice, vol);
         }
         };
 
-    // 小工具：按线性速度靠近目标（返回新值）
+    // 线性靠近
     auto ApproachLinear = [](float cur, float tgt, float ratePerSec)->float {
         float step = ratePerSec * FRAME_SEC;
         if (cur < tgt) { cur += step; if (cur > tgt) cur = tgt; }
@@ -496,7 +494,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
         return cur;
         };
 
-    // ===== Audio: BGM + Running ===== 
+    // Audio: BGM + Running
     int sfxBgm = Novice::LoadAudio("./assets/play/bgm/play.mp3");
     int sfxRun = Novice::LoadAudio("./assets/play/player/sfx/running.mp3");
     int voiceBgm = -1;
@@ -505,18 +503,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
         voiceBgm = Novice::PlayAudio(sfxBgm, /*loop=*/true, /*volume=*/MAIN_BGM_VOL);
     }
 
-    // ===== 新增：一阶段/二阶段 BGM =====
-    // 路径双备份（assets 与 asetts），避免误拼写导致加载失败
+    // 一阶段/二阶段 BGM
     int sfxAlert = LoadAudioTry("./assets/play/enemy/sfx/1.mp3", "./asetts/play/enemy/sfx/1.mp3");
     int sfxDanger = LoadAudioTry("./assets/play/enemy/sfx/2.mp3", "./asetts/play/enemy/sfx/2.mp3");
 
-    // 对应的voice句柄（循环播放，先静音，后续用SetAudioVolume淡入）
     int voiceAlert = -1;
     int voiceDanger = -1;
     if (sfxAlert >= 0) voiceAlert = Novice::PlayAudio(sfxAlert,  /*loop=*/true, /*volume=*/0.0f);
     if (sfxDanger >= 0) voiceDanger = Novice::PlayAudio(sfxDanger, /*loop=*/true, /*volume=*/0.0f);
 
-    // 当前音量缓存（每帧我们会用ApproachLinear往目标音量靠近）
+    // 当前音量缓存
     float volMain = MAIN_BGM_VOL;
     float volAlert = 0.0f;
     float volDanger = 0.0f;
@@ -530,7 +526,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     auto loadDir4 = [&](const char* dirName, int dIdx) {
         for (int i = 0; i < PLAYER_FRAMES; ++i) {
             char path[256];
-            // 假设文件名仍是 00~08
             std::snprintf(path, sizeof(path), "./assets/play/player/img/%s_%02d.png", dirName, i);
             playerTex[dIdx][i] = Novice::LoadTexture(path);
         }
@@ -540,7 +535,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     loadDir4("left", 2);
     loadDir4("right", 3);
 
-
+    // 敌人贴图
     int enemyTex[4][ENEMY_FRAMES];
     for (int d = 0; d < 4; ++d)
         for (int f = 0; f < ENEMY_FRAMES; ++f)
@@ -557,7 +552,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     loadEnemyDirN("back", 1);
     loadEnemyDirN("left", 2);
     loadEnemyDirN("right", 3);
-
 
     // 玩家动画状态
     enum PlayerDir { PD_Front = 0, PD_Back = 1, PD_Left = 2, PD_Right = 3 };
@@ -577,23 +571,54 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
     // 灯光/电量
     float fuel = FUEL_MAX;
-    int   batteryInv = 4, collectedCnt = 0; // 电池先只收集，不使用
+    int   batteryInv = 4, collectedCnt = 0; // 收集物计数
     bool  showMiniMap = true;
 
     // 灯光三档：默认中档
-    int   lightLevel = 1; // 0/1/2 => 200/350/550
+    int   lightLevel = 1; // 0/1/2 => 180/280/550
     float targetRadius = LIGHT_LEVELS[lightLevel];
     float radius = targetRadius;
 
     // 刷新点
     std::vector<BatterySpawn> batteries;
     std::vector<Collectible>  collectibles;
-    for (int r = 0; r < MAP_ROWS; ++r)
-        for (int c = 0; c < MAP_COLS; ++c) {
-            int t = tileGrid[r][c]; float x, y; TileCenter(r, c, x, y);
-            if (t == T_BATT) batteries.push_back({ x,y,true,0.0f });
-            else if (t == T_ITEM) collectibles.push_back({ x,y,true });
+
+    auto RebuildPickups = [&]() {
+        batteries.clear();
+        collectibles.clear();
+
+        std::vector<int> battIndices;
+
+        for (int r = 0; r < MAP_ROWS; ++r) {
+            for (int c = 0; c < MAP_COLS; ++c) {
+                int t = tileGrid[r][c];
+                float x, y; TileCenter(r, c, x, y);
+
+                if (t == T_BATT) {
+                    batteries.push_back({ x, y, false, 0.0f }); // 先全设为未激活
+                    battIndices.push_back((int)batteries.size() - 1);
+                }
+                else if (t == T_ITEM) {
+                    collectibles.push_back({ x, y, true });
+                }
+            }
         }
+
+        // 随机挑选一部分激活（不超过 MAX_BATT_ACTIVE）
+        std::mt19937 shufRng((unsigned)time(nullptr));
+        std::shuffle(battIndices.begin(), battIndices.end(), shufRng);
+
+        int aliveN = std::min((int)battIndices.size(), MAX_BATT_ACTIVE);
+        for (int i = 0; i < aliveN; ++i) {
+            batteries[battIndices[i]].alive = true;
+        }
+        // 其余的给一个初始计时，避免同时刷一堆
+        for (int i = aliveN; i < (int)battIndices.size(); ++i) {
+            batteries[battIndices[i]].timer = (float)(i - aliveN) * 3.0f; // 可随意
+        }
+        };
+
+    RebuildPickups();
 
     // 小地图
     const float miniSX = (float)MINI_W / (float)MAP_W_PX;
@@ -658,54 +683,84 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
         }
         };
 
-    for (int rid = 1; rid <= 4; ++rid) {
-        for (int i = 0; i < ENEMIES_PER_QUADRANT; ++i) {
-            spawnEnemyOnRoute(rid);   // ★ 同一象限多刷几只
+    auto RebuildEnemies = [&]() {
+        enemies.clear();
+        for (int rid = 1; rid <= 4; ++rid) {
+            for (int i = 0; i < ENEMIES_PER_QUADRANT; ++i) {
+                spawnEnemyOnRoute(rid);
+            }
         }
-    }
+        };
+    RebuildEnemies();
 
+    // 重置游戏（胜利/失败均调用）
+    auto ResetGame = [&]() {
+        // 停跑步声
+        if (voiceRun >= 0) { Novice::StopAudio(voiceRun); voiceRun = -1; }
 
-    // ===== 主循环（仅游玩场景）=====
+        // 玩家
+        playerX = 256.0f; playerY = 256.0f;
+        playerDir = PD_Front; playerFrame = 0; playerAnimAccum = 0.0f;
+        speed = 5.0f;
+
+        // 相机
+        camX = std::clamp(playerX - SCREEN_W * 0.5f, 0.0f, (float)(MAP_W_PX - SCREEN_W));
+        camY = std::clamp(playerY - SCREEN_H * 0.5f, 0.0f, (float)(MAP_H_PX - SCREEN_H));
+
+        // 灯光/电量
+        fuel = FUEL_MAX;
+        batteryInv = 4;
+        collectedCnt = 0;
+        lightLevel = 1;
+        targetRadius = LIGHT_LEVELS[lightLevel];
+        radius = targetRadius;
+
+        // 拾取和敌人
+        RebuildPickups();
+        RebuildEnemies();
+
+        // BGM音量回到主
+        volMain = MAIN_BGM_VOL;
+        volAlert = 0.0f;
+        volDanger = 0.0f;
+        SetVoiceVol(voiceBgm, volMain);
+        SetVoiceVol(voiceAlert, volAlert);
+        SetVoiceVol(voiceDanger, volDanger);
+        };
+
+    // ===== 主循环 =====
     while (Novice::ProcessMessage() == 0) {
         Novice::BeginFrame();
         memcpy(preKeys, keys, 256);
         Novice::GetHitKeyStateAll(keys);
 
-        // === 输入 / 动画（归一化移动 + 跑步声）===
-        if (!preKeys[DIK_M] && keys[DIK_M]) showMiniMap = !showMiniMap;
-
-        // E：没电则充电；否则切换灯光三档
-        if (!preKeys[DIK_E] && keys[DIK_E]) {
+        // E：没电充电，否则切换档位
+        if (!preKeys[DIK_SPACE] && keys[DIK_SPACE]) {
             if (fuel <= 0.0f && batteryInv > 0) {
-                // 消耗一节电池把电量回满
                 batteryInv--;
                 fuel = FUEL_MAX;
-                // 不改档位，回满后半径会按当前档位生效
             }
             else {
-                // 正常切换档位
-                lightLevel = (lightLevel + 1) % 3; // 0->1->2->0
+                lightLevel = (lightLevel + 1) % 3;
             }
         }
 
-
-        // 方向意图（整数向量）
+        // 移动输入（归一化）
         int ix = 0, iy = 0;
         if (keys[DIK_A] || keys[DIK_LEFT])  ix -= 1;
         if (keys[DIK_D] || keys[DIK_RIGHT]) ix += 1;
         if (keys[DIK_W] || keys[DIK_UP])    iy -= 1;
         if (keys[DIK_S] || keys[DIK_DOWN])  iy += 1;
 
-        // 归一化到等速位移（保持总速度= speed）
         float dx = 0.0f, dy = 0.0f;
         if (ix != 0 || iy != 0) {
-            float len = sqrtf((float)(ix * ix + iy * iy)); // 1 或 sqrt(2)
+            float len = sqrtf((float)(ix * ix + iy * iy));
             float inv = 1.0f / len;
             dx = ix * speed * inv;
             dy = iy * speed * inv;
         }
 
-        // 移动与跑步声
+        // 跑步声
         bool isMoving = (ix != 0 || iy != 0);
         if (isMoving) {
             if (voiceRun < 0 && sfxRun >= 0) {
@@ -713,10 +768,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
             }
         }
         else {
-            if (voiceRun >= 0) {
-                Novice::StopAudio(voiceRun);
-                voiceRun = -1;
-            }
+            if (voiceRun >= 0) { Novice::StopAudio(voiceRun); voiceRun = -1; }
         }
 
         // 面向与动画
@@ -727,14 +779,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
             playerAnimAccum += FRAME_SEC;
             while (playerAnimAccum >= PLAYER_ANIM_DT) {
                 playerAnimAccum -= PLAYER_ANIM_DT;
-                playerFrame = (playerFrame + 1) % PLAYER_FRAMES;   // ★ 改这里
+                playerFrame = (playerFrame + 1) % PLAYER_FRAMES;
             }
         }
         else {
             playerFrame = 0;
             playerAnimAccum = 0.0f;
         }
-
 
         // 玩家碰撞（X）
         if (dx != 0.0f) {
@@ -798,37 +849,62 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
         if (fabsf(targetCamX - camX) < CAM_SNAP) camX = targetCamX;
         if (fabsf(targetCamY - camY) < CAM_SNAP) camY = targetCamY;
 
-        // ===== 电量 / 灯光半径（固定档位，不随电量比例缩放）=====
+        // 电量/灯光
         fuel -= DRAIN_PER_FRAME * DRAIN_MULT[lightLevel];
         if (fuel < 0.0f) fuel = 0.0f;
-
-        // 只在没电时降到最小半径，否则始终是当前档位的固定半径
-        targetRadius = LIGHT_LEVELS[lightLevel];
+        targetRadius = (fuel <= 0.0f) ? R_MIN : LIGHT_LEVELS[lightLevel];
         radius += (targetRadius - radius) * RADIUS_LERP;
 
+        // === 安全区判定 ===
+        int pR, pC; WorldToRC(playerX, playerY, pR, pC);
+        bool playerInSafe = (tileGrid[pR][pC] == T_SAFE);
 
         // 拾取
         const float pickR2 = PICK_RADIUS * PICK_RADIUS;
+        // 先统计当前激活数量
+        int activeBatt = 0;
+        for (auto& b : batteries) if (b.alive) ++activeBatt;
+
         for (auto& b : batteries) {
-            if (!b.alive) { b.timer -= FRAME_SEC; if (b.timer <= 0.0f) { b.alive = true; b.timer = 0.0f; } }
-            else if (Dist2(playerX, playerY, b.x, b.y) <= pickR2) { b.alive = false; b.timer = BATT_RESPAWN_SEC; batteryInv++; }
+            if (!b.alive) {
+                if (BATT_ENABLE_RESPAWN) {
+                    b.timer -= FRAME_SEC;
+                    if (b.timer <= 0.0f && activeBatt < MAX_BATT_ACTIVE) {
+                        b.alive = true;
+                        b.timer = 0.0f;
+                        ++activeBatt; // 记得递增
+                    }
+                }
+            }
+            else {
+                if (Dist2(playerX, playerY, b.x, b.y) <= pickR2) {
+                    b.alive = false;
+                    if (BATT_ENABLE_RESPAWN) b.timer = BATT_RESPAWN_SEC; else b.timer = 0.0f;
+                    batteryInv++;
+                }
+            }
         }
+
         for (auto& it : collectibles) {
             if (it.alive && Dist2(playerX, playerY, it.x, it.y) <= pickR2) { it.alive = false; collectedCnt++; }
         }
 
-        // 敌人AI & 动画（发现规则：进入玩家当前灯光半径，就“发现玩家”）
-        const float lightR2 = radius * radius; // 使用当前显示半径
-        // === 阶段判定的聚合变量（本帧）===
-        float minEnemyDist2 = 1e30f;   // 最近敌人距离平方
-        bool  anyChasing = false;  // 是否存在追击中的敌人
+        // 敌人AI & 动画
+        const float lightR2 = radius * radius;
 
+        // 聚合量
+        float minEnemyDist2 = 1e30f;
+        bool  anyChasing = false;
+        bool  anyInL2 = false;
+        bool  anyInL3 = false;
 
         for (auto& enemy : enemies) {
             float d2 = Dist2(enemy.x, enemy.y, playerX, playerY);
             if (d2 < minEnemyDist2) minEnemyDist2 = d2;
-            if (enemy.state == ES_Chase) anyChasing = true;
-            bool litFound = (d2 <= lightR2); // 进入光圈就被看到
+
+            // 进入光圈才算“看到玩家”，但玩家在安全区时，强制不可见
+            bool litFound = (!playerInSafe) && (d2 <= lightR2);
+
             switch (enemy.state) {
             case ES_Patrol: {
                 if (litFound) {
@@ -854,7 +930,34 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
             } break;
 
             case ES_Chase: {
-                // 被光照到就持续锁定；否则开始累计丢失时间
+                // ★ 玩家在安全区：立即脱战返航，避免“堵门”
+                if (playerInSafe) {
+                    int er, ec; WorldToRC(enemy.x, enemy.y, er, ec);
+                    int rr, rc;
+                    if (FindNearestRouteTileById(er, ec, enemy.routeId, rr, rc)) {
+                        std::vector<std::pair<int, int>> back;
+                        if (BFSPath(er, ec, rr, rc, back)) {
+                            enemy.state = ES_Return;
+                            enemy.path = std::move(back);
+                            enemy.pathIdx = (enemy.path.size() >= 2) ? 1 : 0;
+                            auto tgt = enemy.path[enemy.pathIdx];
+                            enemy.tgtR = tgt.first; enemy.tgtC = tgt.second;
+                        }
+                        else {
+                            enemy.state = ES_Patrol;
+                            ChooseNextOnRoute(enemy, rng);
+                        }
+                    }
+                    else {
+                        enemy.state = ES_Patrol;
+                        ChooseNextOnRoute(enemy, rng);
+                    }
+                    enemy.lostTimer = 0.0f;
+                    EnemyStepToTarget(enemy);
+                    break; // 本帧不再继续追击逻辑
+                }
+
+                // 追击正常逻辑
                 if (litFound) enemy.lostTimer = 0.0f; else enemy.lostTimer += FRAME_SEC;
 
                 enemy.repathTimer -= FRAME_SEC;
@@ -914,7 +1017,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
                 }
                 EnemyStepToTarget(enemy);
 
-                // 返航途中，如再次被光照到，立刻转为追击
+                // 返航途中，如再次被光照到且玩家不在安全区，立刻转追击
                 if (litFound) {
                     int er, ec, pr, pc; WorldToRC(enemy.x, enemy.y, er, ec); WorldToRC(playerX, playerY, pr, pc);
                     std::vector<std::pair<int, int>> path;
@@ -928,7 +1031,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
             } break;
             }
 
-            // 敌人朝向+动画帧
+            // 敌人动画
             const float MV_EPS = 0.01f;
             bool enemyMoving = (fabsf(enemy.lastVX) > MV_EPS || fabsf(enemy.lastVY) > MV_EPS);
             if (enemyMoving) {
@@ -937,99 +1040,93 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
                 enemy.animAccum += FRAME_SEC;
                 while (enemy.animAccum >= ENEMY_ANIM_DT) {
                     enemy.animAccum -= ENEMY_ANIM_DT;
-                    enemy.frame = (enemy.frame + 1) % ENEMY_FRAMES;   // ★ 支持 7 帧
+                    enemy.frame = (enemy.frame + 1) % ENEMY_FRAMES;
                 }
-
             }
             else { enemy.frame = 0; enemy.animAccum = 0.0f; }
+
+            // BGM聚合：安全区内不计警戒
+            if (!playerInSafe) {
+                if (enemy.state == ES_Chase) anyChasing = true;
+                if (d2 <= LIGHT_LEVELS[1] * LIGHT_LEVELS[1]) anyInL2 = true;
+                if (d2 <= LIGHT_LEVELS[2] * LIGHT_LEVELS[2]) anyInL3 = true;
+            }
         }
-        // === 基于灯光阈值的BGM判定 ===
- // 三个半径（单位：世界像素），不直接用 near/far 名称以免命宏
-        const float L2 = LIGHT_LEVELS[1]; // 二档：350
-        const float L3 = LIGHT_LEVELS[2]; // 三档：550
 
-        auto Clamp01 = [](float v)->float { return (v < 0.0f) ? 0.0f : (v > 1.0f ? 1.0f : v); };
-
-        // 找出“被当前灯光照到”的敌人中：
-        // 1) 距离最近的（任意）
-        // 2) 距离最近且在 L2 内（阶段2区）
-        // 3) 距离最近且在 (L2, L3] 内（阶段1区）
-        float dMinLit = 1e30f;
-        float dMinStage2 = 1e30f;
-        float dMinStage1 = 1e30f;
-
-        for (auto& enemy : enemies) {
-            float d = sqrtf(Dist2(enemy.x, enemy.y, playerX, playerY));
-            if (d <= radius) {                    // 关键：必须在“当前灯光半径”里才算触发
-                if (d < dMinLit) dMinLit = d;
-                if (d <= L2) {                    // 二档阈值内：阶段2候选
-                    if (d < dMinStage2) dMinStage2 = d;
-                }
-                else if (d <= L3) {             // 在二档外但三档内：阶段1候选
-                    if (d < dMinStage1) dMinStage1 = d;
+        // === 胜负判定（抓到/收集10个）===
+        bool caught = false;
+        if (!playerInSafe) {
+            for (auto& enemy : enemies) {
+                if (AABBOverlap(playerX, playerY, PLY_COLL_W, PLY_COLL_H,
+                    enemy.x, enemy.y, ENEMY_COLL_W, ENEMY_COLL_H)) {
+                    caught = true; break;
                 }
             }
         }
+        bool win = (collectedCnt >= 10);
 
-        // 本帧“想要”的阶段（0=主, 1=阶段1, 2=阶段2）
-        int wantStage = 0;
-        if (dMinStage2 < 1e29f)      wantStage = 2;
-        else if (dMinStage1 < 1e29f) wantStage = 1;
-        else                         wantStage = 0;
-
-        // 音乐状态（只升不降：2不会退到1；有敌人不在灯光里时可回主）
-        static int musicStage = 0;
-        if (wantStage > musicStage) musicStage = wantStage;
-        else if (wantStage == 0)    musicStage = 0;         // 没有任何照到的敌人，回主BGM
-        // else: want=1 且 stage=2 时保持2；want=1 且 stage=1 保持1
-
-        // 目标音量（先清零）
-        float tgtMain = 0.0f;
-        float tgtAlert = 0.0f;
-        float tgtDanger = 0.0f;
-
-        // 计算随距离衰减的音量：
-        // 阶段2：
-        //   - 在 L2 内：g2 = 1 - d/L2（越近越响，到L2边界为0）
-        //   - 如果音乐状态仍为2但敌人退到(L2, L3]：给一段“余音”尾巴
-        //       g2_tail = ((L3 - d) / (L3 - L2)) * DANGER_TAIL_IN_STAGE1
-        // 阶段1：
-        //   - 在 (L2, L3]：g1 = (L3 - d) / (L3 - L2)（靠近L2更响，到L3边界为0）
-        if (musicStage == 2) {
-            float g2 = 0.0f;
-            if (dMinStage2 < 1e29f) {
-                g2 = 1.0f - (dMinStage2 / L2);
-            }
-            else if (dMinStage1 < 1e29f) {
-                // 敌人在阶段1区，但我们仍处于阶段2（不退歌）：给尾衰
-                g2 = ((L3 - dMinStage1) / (L3 - L2)) * DANGER_TAIL_IN_STAGE1;
-            }
-            g2 = Clamp01(g2);
-
-            tgtDanger = DANGER_BGM_VOL * g2;
-            tgtAlert = 0.0f;
-            tgtMain = 0.0f;
+        if (caught || win) {
+            // 直接重置（胜利/失败均如此）
+            ResetGame();
         }
-        else if (musicStage == 1) {
-            if (dMinStage1 < 1e29f) {
-                float g1 = (L3 - dMinStage1) / (L3 - L2);
-                g1 = Clamp01(g1);
-                tgtAlert = ALERT_BGM_VOL * g1;
+
+        // === BGM状态机 与 音量 ===
+        const float rL2 = LIGHT_LEVELS[1];
+        const float rL3 = LIGHT_LEVELS[2];
+
+        static int musicStage = 0; // 0=Main, 1=Alert, 2=Danger
+        bool want2 = anyInL2 || anyChasing;
+        bool want1 = (!want2) && anyInL3;
+
+        if (playerInSafe) {
+            musicStage = 0; // 安全区强制主BGM
+        }
+        else {
+            if (want2) {
+                musicStage = 2;
             }
             else {
-                //（理论上不会进来；安全兜底）
-                tgtAlert = 0.0f;
+                if (musicStage == 2) {
+                    if (!anyChasing && !anyInL3) musicStage = 0;
+                }
+                else if (musicStage == 1) {
+                    if (!anyInL3) musicStage = 0;
+                }
+                else {
+                    if (want1) musicStage = 1;
+                }
             }
-            tgtDanger = 0.0f;
-            tgtMain = 0.0f;
-        }
-        else { // musicStage == 0
-            tgtMain = MAIN_BGM_VOL;
-            tgtAlert = 0.0f;
-            tgtDanger = 0.0f;
         }
 
-        // 平滑靠近目标音量（你已有这两工具）
+        auto clamp01 = [](float v) { return v < 0.f ? 0.f : (v > 1.f ? 1.f : v); };
+
+        float d = sqrtf(minEnemyDist2);
+        float tgtMain = 0.f, tgtAlert = 0.f, tgtDanger = 0.f;
+
+        if (musicStage == 2) {
+            float rNear = rL2;
+            float rFar = anyChasing ? DANGER_VOL_FAR_WHEN_CHASE : rL3;
+            if (rFar <= rNear) rFar = rNear + 1.0f;
+
+            float g = (rFar - d) / (rFar - rNear);
+            g = clamp01(g);
+            if (anyChasing && g < DANGER_VOL_MIN_WHEN_CHASE) g = DANGER_VOL_MIN_WHEN_CHASE;
+
+            tgtDanger = DANGER_BGM_VOL * g;
+        }
+        else if (musicStage == 1) {
+            float rNear = rL3;
+            float rFar = ALERT_MAX_DIST;
+            if (rFar <= rNear) rFar = rNear + 1.0f;
+
+            float g = (rFar - d) / (rFar - rNear);
+            g = clamp01(g);
+            tgtAlert = ALERT_BGM_VOL * g;
+        }
+        else {
+            tgtMain = MAIN_BGM_VOL;
+        }
+
         volMain = ApproachLinear(volMain, tgtMain, (tgtMain > volMain) ? FADE_UP_PER_SEC : FADE_DOWN_PER_SEC);
         volAlert = ApproachLinear(volAlert, tgtAlert, (tgtAlert > volAlert) ? FADE_UP_PER_SEC : FADE_DOWN_PER_SEC);
         volDanger = ApproachLinear(volDanger, tgtDanger, (tgtDanger > volDanger) ? FADE_UP_PER_SEC : FADE_DOWN_PER_SEC);
@@ -1038,16 +1135,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
         SetVoiceVol(voiceAlert, volAlert);
         SetVoiceVol(voiceDanger, volDanger);
 
-        // （可选）调试显示
-        Novice::ScreenPrintf(20, 120, "stage=%d  d2=%.1f  d1=%.1f", musicStage,
-            (dMinStage2 < 1e29f ? dMinStage2 : -1.0f),
-            (dMinStage1 < 1e29f ? dMinStage1 : -1.0f));
+        // 调试显示
+        Novice::ScreenPrintf(20, 120, "stage=%d anyChase=%d L2=%d L3=%d d=%.1f safe=%d",
+            musicStage, anyChasing ? 1 : 0, anyInL2 ? 1 : 0, anyInL3 ? 1 : 0, d, playerInSafe ? 1 : 0);
         Novice::ScreenPrintf(20, 140, "Main=%.2f Alert=%.2f Danger=%.2f", volMain, volAlert, volDanger);
-
-        SetVoiceVol(voiceBgm, volMain);
-        SetVoiceVol(voiceAlert, volAlert);
-        SetVoiceVol(voiceDanger, volDanger);
-
+        Novice::ScreenPrintf(20, 160, "Collected=%d  (Win at 10)", collectedCnt);
 
         // ===== 绘制 =====
         Novice::DrawSprite(
@@ -1073,7 +1165,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
                 0.0f, COL_PLY, kFillModeSolid);
         }
 
-
         for (auto& enemy : enemies) {
             int ex = (int)((enemy.x - camX) * RENDER_SCALE);
             int ey = (int)((enemy.y - camY) * RENDER_SCALE);
@@ -1091,10 +1182,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
                     (int)(ENEMY_W * RENDER_SCALE), (int)(ENEMY_H * RENDER_SCALE),
                     0.0f, enemyColor(enemy.routeId), kFillModeSolid);
             }
-
-
-            // 原来的固定视野圈已改为“光圈触发”，这里不再绘制调试圈
-            // 如需可视化光圈触发，可在玩家处画圆；这里省略
         }
 
         auto drawDot = [&](float wx, float wy, unsigned int col) {
@@ -1112,9 +1199,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
         DrawDarkCircleHole(
             pScreenX, pScreenY,
-            (int)(radius* RENDER_SCALE + 0.5f),
+            (int)(radius * RENDER_SCALE + 0.5f),
             COL_BLACK);
-
 
         if (showMiniMap) {
             Novice::DrawBox(miniX - 4, miniY - 4, MINI_W + 8, MINI_H + 8, 0.0f, COL_MM_BG, kFillModeSolid);
@@ -1122,18 +1208,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
             int mpX = (int)(miniX + playerX * miniSX);
             int mpY = (int)(miniY + playerY * miniSY);
             Novice::DrawBox(mpX - 3, mpY - 3, 6, 6, 0.0f, COL_MM_P, kFillModeSolid);
-            for (auto& enemy : enemies) {
-                int meX = (int)(miniX + enemy.x * miniSX);
-                int meY = (int)(miniY + enemy.y * miniSY);
-                Novice::DrawBox(meX - 2, meY - 2, 4, 4, 0.0f, enemyColor(enemy.routeId), kFillModeSolid);
-                // 不再在小地图绘制敌人固定视野圈
-            }
         }
 
         Novice::ScreenPrintf(20, 20, "Fuel: %3d / 100", (int)(fuel + 0.5f));
         Novice::ScreenPrintf(20, 40, "Batteries: %d", batteryInv);
         Novice::ScreenPrintf(20, 60, "Collected: %d", collectedCnt);
-        Novice::ScreenPrintf(20, 80, "[E] Light/Recharge  [M] Minimap");
+        Novice::ScreenPrintf(20, 80, "[Space] Light/Recharge");
         Novice::ScreenPrintf(20, 100, "Light: L%d  (radius %.0f)", (fuel <= 0.0f ? 1 : lightLevel + 1), radius);
 
         Novice::EndFrame();
